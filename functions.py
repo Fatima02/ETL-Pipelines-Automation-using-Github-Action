@@ -5,32 +5,26 @@ from youtube_transcript_api import YouTubeTranscriptApi
 from sentence_transformers import SentenceTransformer
 import os
 
-def getVideoRecords(response: requests.models.Response) -> list:
-    """
-        Function to extract YouTube video data from GET request response
+def getVideoRecords(response):
+    try:
+        # Attempt to parse the response as JSON
+        response_data = json.loads(response.text)
 
-        Dependers: 
-            - getVideoIDs()
-    """
+        # Check if 'items' exists in the parsed data
+        if 'items' in response_data:
+            return response_data['items']
+        else:
+            print("No 'items' key found in the response")
+            return []  # Return an empty list if 'items' is not found
 
-    video_record_list = []
-    
-    for raw_item in json.loads(response.text)['items']:
-    
-        # only execute for youtube videos
-        if raw_item['id']['kind'] != "youtube#video":
-            continue
-        
-        video_record = {}
-        video_record['video_id'] = raw_item['id']['videoId']
-        video_record['datetime'] = raw_item['snippet']['publishedAt']
-        video_record['title'] = raw_item['snippet']['title']
-        
-        video_record_list.append(video_record)
+    except json.JSONDecodeError:
+        print("Failed to decode JSON response. Response text:")
+        print(response.text)  # Print the raw response for debugging
+        return []  # Return an empty list on decode failure
 
-    return video_record_list
-
-
+    except KeyError as e:
+        print(f"Error: {e}. The response does not contain the expected structure.")
+        return []  # Return an empty list on KeyError
 def getVideoIDs():
     """
         Function to return all video IDs for Shaw Talebi's YouTube channel
