@@ -7,26 +7,42 @@ import os
 
 def getVideoRecords(response: requests.models.Response) -> list:
     """
-        Function to extract YouTube video data from GET request response
+    Function to extract YouTube video data from GET request response
 
-        Dependers: 
-            - getVideoIDs()
+    Depends on: 
+        - getVideoIDs()
     """
 
     video_record_list = []
     
-    for raw_item in json.loads(response.text)['items']:
-    
-        # only execute for youtube videos
-        if raw_item['id']['kind'] != "youtube#video":
-            continue
+    try:
+        data = json.loads(response.text)
         
-        video_record = {}
-        video_record['video_id'] = raw_item['id']['videoId']
-        video_record['datetime'] = raw_item['snippet']['publishedAt']
-        video_record['title'] = raw_item['snippet']['title']
-        
-        video_record_list.append(video_record)
+        # Check if 'items' key exists in the response
+        if 'items' not in data:
+            print("No 'items' key found in response.")
+            print(f"Response data: {data}")
+            return []  # Return an empty list if 'items' is not found
+
+        for raw_item in data['items']:
+            # Only execute for YouTube videos
+            if raw_item['id']['kind'] != "youtube#video":
+                continue
+            
+            video_record = {}
+            video_record['video_id'] = raw_item['id']['videoId']
+            video_record['datetime'] = raw_item['snippet']['publishedAt']
+            video_record['title'] = raw_item['snippet']['title']
+            
+            video_record_list.append(video_record)
+
+    except json.JSONDecodeError:
+        print("Error decoding JSON response.")
+        print(f"Response text: {response.text}")
+        return []  # Return an empty list on JSON decode error
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return []  # Handle any other unexpected exceptions
 
     return video_record_list
 
