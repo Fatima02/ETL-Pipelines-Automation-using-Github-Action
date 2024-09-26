@@ -4,6 +4,8 @@ import polars as pl
 from youtube_transcript_api import YouTubeTranscriptApi
 from sentence_transformers import SentenceTransformer
 import os
+import pandas as pd
+import csv
 
 def getVideoRecords(response):
     try:
